@@ -15,6 +15,32 @@ const RandomWinnerSelector = () => {
     setError('');
   };
 
+  const downloadLocationWinners = (location, locationWinners) => {
+    // Create CSV content
+    const headers = ['Name', 'Number', 'Department', 'Location'];
+    const csvContent = [
+      headers.join(','),
+      ...locationWinners.map(winner => 
+        [
+          winner[3], // Name
+          winner[2], // Number
+          winner[5], // Department
+          winner[4]  // Location
+        ].map(field => `"${field}"`).join(',')
+      )
+    ].join('\n');
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${location}_winners.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const selectWinners = () => {
     if (csvData.length === 0) {
       setError('Please upload a CSV file first.');
@@ -31,8 +57,8 @@ const RandomWinnerSelector = () => {
       locationGroups[location].push(row);
     });
 
-    const spinDuration = 10000; //
-    const spinInterval = 500; //
+    const spinDuration = 10000;
+    const spinInterval = 500;
 
     const spinTimer = setInterval(() => {
       const randomSpin = {};
@@ -127,7 +153,15 @@ const RandomWinnerSelector = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {Object.entries(winners).map(([location, locationWinners]) => (
                 <div key={location} className="bg-green-100 p-4 rounded shadow">
-                  <h3 className="text-xl font-semibold mb-2 text-green-800">{location}</h3>
+                  <h3 className="text-xl font-semibold mb-2 text-green-800">
+                    {location}
+                    <button
+                      onClick={() => downloadLocationWinners(location, locationWinners)}
+                      className="ml-4 bg-green-500 hover:bg-green-600 text-white text-sm py-1 px-3 rounded transition duration-300"
+                    >
+                      Download CSV
+                    </button>
+                  </h3>
                   <ul className="space-y-2">
                     {locationWinners.map((winner, index) => (
                       <li key={index} className="border-b border-green-200 pb-2">
